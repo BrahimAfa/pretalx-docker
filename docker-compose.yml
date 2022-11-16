@@ -4,18 +4,14 @@ services:
     image: pretalx/standalone:latest
     container_name: pretalx
     restart: unless-stopped
-    depends_on: 
+    depends_on:
       - redis
       - db
     ports:
-      - "80:80"
-    volumes: 
+      - "127.0.0.1:8346:80"
+    volumes:
       - ./conf/pretalx.cfg:/etc/pretalx/pretalx.cfg:ro
       - pretalx-data:/data
-    labels:
-       traefik.docker.network: "pretalxdocker"
-       traefik.enable: "true"
-
   db:
     image: mysql:latest
     container_name: pretalx-db
@@ -33,11 +29,50 @@ services:
     image: redis:latest
     container_name: pretalx-redis
     restart: unless-stopped
-    volumes: 
+    volumes:
       - pretalx-redis:/data
+
+  pretix:
+    image: pretix/standalone:stable
+    sysctls:
+      - net.core.somaxconn=4096
+    container_name: pretix
+    restart: unless-stopped
+    depends_on:
+      - redis
+      - db
+    ports:
+      - "127.0.0.1:8345:80"
+    volumes:
+      - ./conf/pretix.cfg:/etc/pretix/pretix.cfg:ro
+      - pretix-data:/data
+      - /etc/pretix:/etc/pretix
+  db-pretix:
+    image: mysql:latest
+    container_name: pretix-db
+    restart: unless-stopped
+    volumes:
+      - pretix-db:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: pretix
+      MYSQL_USER: pretix
+      MYSQL_PASSWORD: veryunsecureplschange
+      MYSQL_RANDOM_ROOT_PASSWORD: "1"
+    command: ['mysqld', '--character-set-server=utf8mb4', '--collation-server=utf8mb4_unicode_ci']
+
+  redis-pretix:
+    image: redis:latest
+    container_name: pretix-redis
+    restart: unless-stopped
+    volumes:
+      - pretix-redis:/data
 
 volumes:
   pretalx-db:
   pretalx-data:
   pretalx-redis:
+
+  pretix-data:
+  pretix-db:
+  pretix-redis:
 
