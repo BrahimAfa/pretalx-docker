@@ -40,8 +40,9 @@ services:
     container_name: pretix
     restart: unless-stopped
     depends_on:
-      - redis-pretix
-      - db-pretix
+      - redis
+      - db
+    command: all
     ports:
       - "127.0.0.1:8345:80"
     volumes:
@@ -52,8 +53,4 @@ volumes:
   pretalx-db:
   pretalx-data:
   pretalx-redis:
-
-  pretix-data:
-  pretix-db:
-  pretix-redis:
 
